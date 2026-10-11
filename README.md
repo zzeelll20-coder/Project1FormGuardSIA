@@ -43,8 +43,8 @@ In your terminal (PowerShell, Command Prompt, or Bash):
 
 ```bash
 # 1. Clone repository (if downloading from GitHub)
-git clone <your-repository-url>
-cd formguard
+git clone https://github.com/zzeelll20-coder/Project1FormGuardSIA.git
+cd Project1FormGuardSIA
 
 # 2. Install dependencies (creates the local node_modules folder)
 npm install
