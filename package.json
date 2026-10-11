@@ -1,0 +1,20 @@
+{
+  "name": "formguard",
+  "version": "1.0.0",
+  "description": "FormGuard - Secure Desktop Exam Lockdown Browser & Real-time Proctoring Suite",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "electron": "^44.7.0",
+    "express": "^5.3.0",
+    "localtunnel": "^2.0.2",
+    "ws": "^8.22.0"
+  }
+}

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FormGuard - Exam Lockdown & Live Proctoring</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Application Bar -->
+  <header class="app-header" id="appHeader">
+    <div class="brand">
+      <div class="brand-icon">🛡️</div>
+      <div class="brand-title">FormGuard</div>
+      <div class="brand-tag">Lockdown Pro</div>
+    </div>
+
+    <div class="header-actions">
+      <div class="server-badge" id="serverStatusBadge">
+        <span class="pulse-dot"></span>
+        <span id="serverIpDisplay">Local Hub: Ready</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btnNavHome" style="display: none;">
+        ← Back to Home
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Screen Container -->
+  <main class="main-content">
+
+    <!-- VIEW 1: Home / Role Selector -->
+    <section class="view active" id="viewHome">
+      <div class="home-container">
+        <h1 class="hero-title">Secure Google Forms Proctoring</h1>
+        <p class="hero-subtitle">
+          FormGuard prevents tab switching, detects multi-window cheating, and provides teachers with a real-time live monitoring dashboard without needing Chrome extensions or cloud setup.
+        </p>
+
+        <div class="role-cards">
+          <!-- Student Card -->
+          <div class="role-card student" id="cardSelectStudent">
+            <span class="role-badge">Student Client</span>
+            <div class="role-icon">🎓</div>
+            <h2 class="role-heading">Take Exam (Lockdown)</h2>
+            <p class="role-desc">
+              Launch into secured full-screen mode to take your Google Form exam. Window switches and off-screen apps are monitored.
+            </p>
+            <ul class="role-features">
+              <li><span>✓</span> Fullscreen Lockdown browser</li>
+              <li><span>✓</span> Disables shortcuts & external tabs</li>
+              <li><span>✓</span> Instant real-time proctor sync</li>
+            </ul>
+            <button class="btn btn-success btn-block">Enter Student Portal →</button>
+          </div>
+
+          <!-- Teacher Card -->
+          <div class="role-card teacher" id="cardSelectTeacher">
+            <span class="role-badge">Teacher Hub</span>
+            <div class="role-icon">👩‍🏫</div>
+            <h2 class="role-heading">Host & Proctor Exam</h2>
+            <p class="role-desc">
+              Generate a Join Code, distribute your Google Form link, and watch student screens and tab switches in real time.
+            </p>
+            <ul class="role-features">
+              <li><span>✓</span> Live status grid (Active, Away, Offline)</li>
+              <li><span>✓</span> Real-time violation audit stream</li>
+              <li><span>✓</span> Instant warning & force-submit tools</li>
+            </ul>
+            <button class="btn btn-primary btn-block">Open Command Center →</button>
+          </div>
+        </div>
+
+        <div style="color: var(--text-dim); font-size: 0.85rem;">
+          FormGuard Desktop v2.0 • Zero Cloud Setup • Embedded WebSocket Hub
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: Teacher Dashboard -->
+    <section class="view" id="viewTeacher">
+      <div class="teacher-container">
+        <!-- Top Session Bar -->
+        <div class="teacher-top-bar">
+          <div class="exam-info-block">
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Active Exam</div>
+              <h2 id="teacherExamTitle" style="font-size: 1.2rem; font-weight: 700; color: #fff;">General Quiz</h2>
+            </div>
+            <div class="code-display" id="teacherCodeBox" title="Click to copy join code">
+              <span class="code-label">Join Code:</span>
+              <span class="code-value" id="teacherCodeVal">FG-READY</span>
+              <span style="font-size: 0.85rem;">📋</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              LAN Web Link: <span id="teacherWebLink" style="color: #60a5fa; font-family: var(--font-mono); font-weight: 600;">http://localhost:3456</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btnManageRoster">📋 Roster & PINs</button>
+            <button class="btn btn-secondary btn-sm" id="btnConfigureExam">⚙️ Settings</button>
+            <button class="btn btn-primary btn-sm" id="btnExportReport">📥 Export Report</button>
+          </div>
+        </div>
+
+        <!-- Live Metrics Bar -->
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-title">Total Enrolled</span>
+            <span class="stat-number" id="statTotalStudents" style="color: #fff;">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-title">Active on Form</span>
+            <span class="stat-number" id="statActiveStudents" style="color: var(--status-active);">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-title">Switched Window / Away</span>
+            <span class="stat-number" id="statAwayStudents" style="color: var(--status-away);">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-title">Disconnected</span>
+            <span class="stat-number" id="statOfflineStudents" style="color: var(--status-offline);">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-title">Total Violations</span>
+            <span class="stat-number" id="statTotalViolations" style="color: var(--status-danger);">0</span>
+          </div>
+        </div>
+
+        <!-- Main Body: Student Cards Grid + Live Stream -->
+        <div class="teacher-body">
+          <div class="students-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span>Students</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;" id="studentGridCountLabel">(0)</span>
+              </div>
+              <div class="filter-pills">
+                <button class="filter-pill active" data-filter="all">All</button>
+                <button class="filter-pill" data-filter="active">Active</button>
+                <button class="filter-pill" data-filter="away">Away</button>
+                <button class="filter-pill" data-filter="offline">Offline</button>
+              </div>
+            </div>
+
+            <div class="students-grid" id="studentsGrid">
+              <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <div style="font-weight: 600; color: #fff;">Waiting for Students to Join</div>
+                <div style="font-size: 0.85rem; max-width: 320px;">
+                  Share the Join Code <b id="emptyJoinCode">FG-....</b> or LAN URL with your students.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Event Feed -->
+          <div class="stream-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span>🔴 Live Event Stream</span>
+              </div>
+              <button class="btn-icon" id="btnClearStream" title="Clear event stream">🗑️</button>
+            </div>
+            <div class="event-list" id="eventList">
+              <div style="text-align: center; color: var(--text-dim); padding: 30px 10px; font-size: 0.8rem;">
+                Live incidents, window switches, and joins will stream here in real time.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: Student Setup & Join -->
+    <section class="view" id="viewStudentSetup">
+      <div style="display: flex; height: 100%; align-items: center; justify-content: center; padding: 20px;">
+        <div class="student-join-box">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🎓</div>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff;">Student Exam Check-In</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
+              Verify with your Student ID & Access PIN. No Google Account needed.
+            </p>
+          </div>
+
+          <form id="studentJoinForm">
+            <div class="form-group">
+              <label class="form-label">Exam Join Code</label>
+              <input type="text" class="form-input" id="studentCodeInput" placeholder="e.g. FG-8429" style="text-transform: uppercase; font-family: var(--font-mono); font-size: 1.1rem; letter-spacing: 0.05em;" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group">
+                <label class="form-label">Student ID</label>
+                <input type="text" class="form-input" id="studentIdInput" placeholder="e.g. S101" style="text-transform: uppercase; font-family: var(--font-mono);" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Access PIN</label>
+                <input type="password" class="form-input" id="studentPinInput" placeholder="4-digit PIN" maxlength="8" style="font-family: var(--font-mono); letter-spacing: 0.1em;" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-input" id="studentNameInput" placeholder="e.g. Alex Morgan" autocomplete="name">
+              <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 3px;">Auto-verified if present on class roster.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Teacher Hub Host / IP</label>
+              <input type="text" class="form-input" id="studentServerHostInput" placeholder="localhost or 192.168.1.X" value="localhost" style="font-family: var(--font-mono); font-size: 0.85rem;">
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 16px; font-size: 0.78rem; color: #6ee7b7; display: flex; align-items: center; gap: 8px;">
+              <span>🔒</span>
+              <span><b>Identity Secured:</b> Verified via Student ID & bound to your hardware fingerprint. No Google login required.</span>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block" style="padding: 12px;">
+              Verify & Launch Exam →
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: Student Exam Runner (Lockdown Mode) -->
+    <section class="view" id="viewStudentExam">
+      <div class="exam-runner">
+        <!-- Floating Exam Control Bar -->
+        <div class="exam-bar">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <span>🛡️</span> <span id="studentExamTitleBar">Exam in Progress</span>
+            </div>
+            <div class="status-badge active" id="studentLiveBadge">
+              ● Monitored & Secure
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="color: var(--text-muted); font-size: 0.85rem;">
+              Candidate: <b id="studentNameDisplay" style="color: #fff;">Student</b>
+            </div>
+            <div style="font-family: var(--font-mono); font-weight: 700; font-size: 1rem; color: #60a5fa;" id="examTimer">
+              00:00:00
+            </div>
+            <button class="btn btn-danger btn-sm" id="btnStudentSubmitExam">
+              Submit & Exit
+            </button>
+          </div>
+        </div>
+
+        <!-- Math Assessment Container -->
+        <div class="math-exam-body" id="mathExamBody">
+          <!-- Active Question Card -->
+          <div class="math-exam-card" id="mathQuestionCard">
+            <div class="math-q-header">
+              <div>
+                <span class="role-badge" id="mathCategoryBadge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); margin-bottom: 4px;">Mathematics • Algebra</span>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;" id="mathProgressLabel">Question 1 of 5</div>
+              </div>
+              <div class="math-q-pill-row" id="mathPillRow">
+                <!-- 1, 2, 3, 4, 5 pills -->
+              </div>
+            </div>
+
+            <div class="math-question-text" id="mathQuestionText">
+              Solve for x in the linear equation: 3x + 15 = 45
+            </div>
+
+            <div class="math-options-grid" id="mathOptionsGrid">
+              <!-- Options rendered here -->
+            </div>
+
+            <div class="math-nav-footer">
+              <button class="btn btn-secondary btn-sm" id="btnMathPrev" style="visibility: hidden;">
+                ← Previous
+              </button>
+              <div style="font-size: 0.8rem; color: var(--text-dim);" id="mathAnsweredStatus">
+                Select an answer to proceed
+              </div>
+              <button class="btn btn-primary btn-sm" id="btnMathNext">
+                Next Question →
+              </button>
+            </div>
+          </div>
+
+          <!-- Exam Completed / Results Card -->
+          <div class="math-results-card" id="mathResultsCard" style="display: none;">
+            <div style="font-size: 3.5rem; margin-bottom: 12px;">🎉</div>
+            <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 6px;">Exam Completed & Submitted!</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+              Your answers have been securely submitted to your instructor's proctoring dashboard.
+            </p>
+
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+              <div style="font-size: 0.8rem; color: #6ee7b7; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 6px;">Your Final Score</div>
+              <div style="font-size: 3rem; font-weight: 800; font-family: var(--font-mono); color: #fff;" id="mathFinalScore">5 / 5</div>
+              <div style="font-size: 0.9rem; color: #a7f3d0; margin-top: 4px;" id="mathScorePercent">100% Correct</div>
+            </div>
+
+            <div id="mathReviewList" style="text-align: left; max-height: 220px; overflow-y: auto; margin-bottom: 24px; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 14px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 10px;">
+              <!-- Review answers -->
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btnExitFinishedExam" style="padding: 12px;">
+              Release Lockdown & Close Exam
+            </button>
+          </div>
+        </div>
+
+        <!-- Violation Overlay (Triggered on Alt+Tab) -->
+        <div class="warning-overlay" id="examWarningOverlay">
+          <div class="warning-card">
+            <div style="font-size: 3rem; margin-bottom: 12px;">⚠️</div>
+            <h2 class="warning-title">ALT-TAB ATTEMPT DETECTED</h2>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5;">
+              FormGuard detected an attempt to switch away or Alt-Tab from the exam window! All window-switching attempts are logged and transmitted to your instructor.
+            </p>
+            <button class="btn btn-primary" id="btnDismissWarning">
+              Return to Exam Immediately
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODALS -->
+
+  <!-- Modal: In-App Submit Confirmation -->
+  <div class="modal-backdrop" id="modalConfirmSubmit">
+    <div class="modal-box" style="max-width: 460px; text-align: center;">
+      <div class="modal-body" style="padding: 28px 24px;">
+        <div style="font-size: 2.8rem; margin-bottom: 12px;">📝</div>
+        <h3 style="font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 8px;">Submit Math Exam?</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" id="submitModalMessage">
+          Are you ready to submit your answers? This will conclude your exam.
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="btn btn-secondary" id="btnCancelSubmitExam">Review Questions</button>
+          <button class="btn btn-success" id="btnConfirmSubmitExam">Yes, Submit Exam</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Configure / Host Exam -->
+  <div class="modal-backdrop" id="modalConfigExam">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-weight: 700; color: #fff;">Configure Exam Session</h3>
+        <button class="btn-icon" id="btnCloseConfigModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Exam Title</label>
+          <input type="text" class="form-input" id="cfgExamTitle" value="Midterm Quiz (Proctored)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Google Form URL</label>
+          <input type="url" class="form-input" id="cfgFormUrl" placeholder="https://docs.google.com/forms/d/e/.../viewform">
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">
+            Paste any Google Form link. The student client will load this inside the lockdown browser.
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lockdown Strictness</label>
+          <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" id="cfgStrictLockdown" checked style="accent-color: var(--accent-primary); width: 18px; height: 18px;">
+            Strict Kiosk Lockdown (forces fullscreen, blocks Alt+Tab & developer shortcuts)
+          </label>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 12px; margin-top: 14px; font-size: 0.8rem; color: #6ee7b7; line-height: 1.5;">
+          💡 <b>Zero Google Sign-In Tip:</b> In your Google Form settings (under <i>Responses</i>), turn <b>OFF</b> <i>"Limit to 1 response"</i> and <i>"Collect email addresses"</i>. This allows students to take the exam directly without ever needing a Google account! FormGuard handles all authentication, verification, and hardware locking.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelConfig">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveConfig">Save & Publish Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Class Roster & Student PINs -->
+  <div class="modal-backdrop" id="modalRoster">
+    <div class="modal-box" style="max-width: 720px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-weight: 700; color: #fff;">Class Roster & Student Access PINs</h3>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Manage approved students, PINs, and hardware device bindings</div>
+        </div>
+        <button class="btn-icon" id="btnCloseRosterModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 16px; background: rgba(0,0,0,0.25); padding: 12px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.88rem; cursor: pointer;">
+            <input type="checkbox" id="cfgRequireRoster" checked style="accent-color: var(--status-active); width: 18px; height: 18px;">
+            Enforce Roster & PIN Verification
+          </label>
+          <button class="btn btn-secondary btn-sm" id="btnCopyRosterPins">
+            📋 Copy PINs Handout List
+          </button>
+        </div>
+
+        <!-- Bulk Import Card -->
+        <details style="margin-bottom: 16px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px;">
+          <summary style="font-size: 0.85rem; font-weight: 600; color: #60a5fa; cursor: pointer;">⚡ Quick Add / Paste Class List (Bulk)</summary>
+          <div style="margin-top: 10px;">
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 6px;">
+              Paste students, one per line (Format: <code>Student Name, Student ID</code>). 4-digit PINs will be auto-generated.
+            </div>
+            <textarea class="form-input" id="txtBulkRoster" rows="4" placeholder="Alex Morgan, S101&#10;Jordan Lee, S102&#10;Taylor Brown, S103" style="font-family: var(--font-mono); font-size: 0.82rem; margin-bottom: 8px;"></textarea>
+            <button class="btn btn-primary btn-sm" id="btnGenerateBulkRoster">Generate PINs & Add to Roster</button>
+          </div>
+        </details>
+
+        <!-- Single Student Add Row -->
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap: 8px; margin-bottom: 16px; align-items: end;">
+          <div>
+            <label class="form-label" style="font-size: 0.72rem;">Student Name</label>
+            <input type="text" class="form-input" id="inputRosterName" placeholder="e.g. Sam Rivera" style="padding: 8px 10px; font-size: 0.85rem;">
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 0.72rem;">Student ID</label>
+            <input type="text" class="form-input" id="inputRosterId" placeholder="e.g. S105" style="padding: 8px 10px; font-size: 0.85rem; text-transform: uppercase; font-family: var(--font-mono);">
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 0.72rem;">PIN</label>
+            <input type="text" class="form-input" id="inputRosterPin" placeholder="Auto" style="padding: 8px 10px; font-size: 0.85rem; font-family: var(--font-mono);">
+          </div>
+          <button class="btn btn-success btn-sm" id="btnAddRosterStudent" style="height: 38px;">+ Add</button>
+        </div>
+
+        <!-- Roster Table -->
+        <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+            <thead style="background: rgba(0,0,0,0.4); position: sticky; top: 0; z-index: 1;">
+              <tr>
+                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Name</th>
+                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Student ID</th>
+                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">PIN</th>
+                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Hardware Lock</th>
+                <th style="padding: 10px; border-bottom: 1px solid var(--border-color); text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="rosterTableBody">
+              <!-- Populated via teacher.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnSaveRoster">Save Roster</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Student Audit Detail -->
+  <div class="modal-backdrop" id="modalStudentAudit">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-weight: 700; color: #fff;" id="auditStudentName">Student Audit</h3>
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="auditStudentMeta">ID: ...</div>
+        </div>
+        <button class="btn-icon" id="btnCloseAuditModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.85rem;">
+          <div>Status: <b id="auditStatus">Active</b></div>
+          <div>Away Count: <b id="auditAwayCount" style="color: var(--status-away);">0</b></div>
+          <div>Total Away Time: <b id="auditAwayDuration">0s</b></div>
+        </div>
+        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px;">Incident Timeline</h4>
+        <div class="event-list" id="auditTimelineList" style="max-height: 280px;">
+          <!-- Items populated via JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" id="btnAuditForceSubmit">Force Submit Exam</button>
+        <button class="btn btn-secondary btn-sm" id="btnAuditWarnStudent">Send Warning Message</button>
+        <button class="btn btn-primary btn-sm" id="btnCloseAudit">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Scripts -->
+  <script src="js/utils.js"></script>
+  <script src="js/teacher.js"></script>
+  <script src="js/student.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
