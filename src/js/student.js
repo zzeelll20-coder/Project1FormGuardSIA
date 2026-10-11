@@ -275,6 +275,11 @@ class StudentController {
     const name = this.nameInput ? this.nameInput.value.trim() : '';
     this.host = this.serverHostInput.value.trim() || 'localhost';
 
+    if (this.studentPinInput) {
+      this.studentPinInput.style.borderColor = '';
+      this.studentPinInput.style.boxShadow = '';
+    }
+
     if (!code || !studentId || !pin) {
       alert('Please enter your Exam Join Code, Student ID, and secret Access PIN.');
       return;
@@ -336,8 +341,17 @@ class StudentController {
 
   async handleServerMessage(data) {
     if (data.type === 'error') {
-      alert(`Exam Verification Failed:\n${data.message}`);
-      if (this.ws) this.ws.close();
+      alert(`Exam Verification Failed:\n\n${data.message}`);
+      if (this.studentPinInput) {
+        this.studentPinInput.style.borderColor = '#ef4444';
+        this.studentPinInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.25)';
+        this.studentPinInput.focus();
+        this.studentPinInput.select();
+      }
+      if (this.ws) {
+        this.ws.close();
+        this.ws = null;
+      }
       return;
     }
 

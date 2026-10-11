@@ -182,6 +182,23 @@ class ProctorServer {
           }
         }
 
+        // Sync roster from host-exam if provided
+        if (Array.isArray(msg.roster) && msg.roster.length > 0) {
+          for (const s of msg.roster) {
+            const sid = String(s.studentId || '').trim().toUpperCase();
+            if (sid) {
+              exam.roster.set(sid, {
+                studentId: sid,
+                name: s.name || sid,
+                pin: String(s.pin || '').trim(),
+                boundDeviceId: s.boundDeviceId || null,
+                boundDeviceName: s.boundDeviceName || null,
+                boundAt: s.boundAt || null
+              });
+            }
+          }
+        }
+
         ws.clientRole = 'teacher';
         ws.examCode = code;
         exam.teacherClients.add(ws);
@@ -217,7 +234,8 @@ class ProctorServer {
 
       // Teacher updates class roster / PINs
       case 'update-roster': {
-        const exam = this.exams.get(ws.examCode);
+        const examCode = (msg.code || ws.examCode || '').toUpperCase();
+        const exam = this.exams.get(examCode);
         if (!exam) return;
 
         if (Array.isArray(msg.roster)) {
@@ -298,23 +316,38 @@ class ProctorServer {
           return;
         }
 
+        if (!pin) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Access PIN is required.' }));
+          return;
+        }
+
         let studentName = msg.name ? msg.name.trim() : studentId;
 
-        // Roster & PIN Security Checks
-        if (exam.requireRosterPin && exam.roster.size > 0) {
-          const rosterRecord = exam.roster.get(studentId);
-          if (!rosterRecord) {
+        // Strict PIN and Roster Verification
+        if (exam.requireRosterPin || exam.roster.size > 0) {
+          if (exam.roster.size === 0) {
             ws.send(JSON.stringify({
               type: 'error',
-              message: `Verification Failed: Student ID "${studentId}" is not on the exam roster. Please check with your teacher.`
+              message: 'Verification Failed: No approved students are registered on the exam roster yet. Please check with your teacher.'
             }));
             return;
           }
 
-          if (rosterRecord.pin && rosterRecord.pin !== pin) {
+          const rosterRecord = exam.roster.get(studentId);
+          if (!rosterRecord) {
             ws.send(JSON.stringify({
               type: 'error',
-              message: 'Verification Failed: Incorrect Access PIN for this Student ID.'
+              message: `Verification Failed: Student ID "${studentId}" is not registered on the class roster. Please check with your teacher.`
+            }));
+            return;
+          }
+
+          // Individual roster Access PIN validation
+          const expectedStudentPin = String(rosterRecord.pin || '').trim();
+          if (expectedStudentPin && pin !== expectedStudentPin) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: `Verification Failed: Incorrect Access PIN for Student ID "${studentId}". Please enter the PIN given by your teacher.`
             }));
             return;
           }

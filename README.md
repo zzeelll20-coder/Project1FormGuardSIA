@@ -62,16 +62,17 @@ npm start
 1. Run `npm.cmd start`.
 2. Click **Open Command Center** under the **Teacher Hub** card.
 3. Note the **Join Code** (e.g., `FG-8429`) displayed at the top.
-4. Click **Settings** (⚙️) to set your Google Form URL and exam title.
+4. Click **Roster & PINs** (📋) to view or register students with their secret **Access PINs** (click **Save Roster** to activate).
 5. In another terminal, run `npm.cmd start` to launch a second window, or click **Student Client** to test the lockdown flow.
-6. Enter student name, student ID, and the **Join Code**, then click **Launch Lockdown Exam**.
+6. Enter student name, student ID, the **Join Code**, and the **Access PIN**, then click **Verify & Launch Exam**.
 7. Switch between apps or click another window — observe the live dashboard immediately update with away counters and incidents!
 
 ### Running in a Classroom / Local Wi-Fi
 1. The teacher launches FormGuard and clicks **Teacher Hub**.
 2. FormGuard displays the teacher's local network IP and port (e.g., `http://192.168.1.50:3456`).
-3. Students on the same Wi-Fi launch FormGuard, enter the teacher's IP address in the **Teacher Hub Host / IP** field, enter their name and the **Join Code**, and click start.
-4. All telemetry synchronizes in real time over local WebSockets.
+3. Teachers provide students with their **Student ID**, **Join Code**, and individual **Access PIN** from the Roster Manager.
+4. Students on the same Wi-Fi launch FormGuard, enter the teacher's IP address, their Student ID, the Join Code, and their Access PIN, then click verify.
+5. All telemetry synchronizes in real time over local WebSockets.
 
 ---
 

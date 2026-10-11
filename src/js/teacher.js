@@ -14,6 +14,7 @@ class TeacherController {
     this.selectedStudentId = null;
     this.totalViolations = 0;
 
+    this.loadRosterFromStorage();
     this.bindDomElements();
     this.attachEventListeners();
   }
@@ -130,10 +131,33 @@ class TeacherController {
     // Save Roster
     if (this.btnSaveRoster) {
       this.btnSaveRoster.addEventListener('click', () => {
-        this.requireRosterPin = this.cfgRequireRoster.checked;
+        // If teacher filled student ID in input box but forgot to click '+ Add', auto-add it!
+        const autoId = this.inputRosterId ? this.inputRosterId.value.trim().toUpperCase() : '';
+        if (autoId) {
+          const autoName = this.inputRosterName ? this.inputRosterName.value.trim() : '';
+          let autoPin = this.inputRosterPin ? this.inputRosterPin.value.trim() : '';
+          if (!autoPin) {
+            autoPin = Math.floor(1000 + Math.random() * 9000).toString();
+          }
+          this.roster.set(autoId, {
+            studentId: autoId,
+            name: autoName || autoId,
+            pin: autoPin,
+            boundDeviceId: null,
+            boundDeviceName: null,
+            boundAt: null
+          });
+          if (this.inputRosterName) this.inputRosterName.value = '';
+          if (this.inputRosterId) this.inputRosterId.value = '';
+          if (this.inputRosterPin) this.inputRosterPin.value = '';
+          this.renderRoster();
+        }
+
+        this.requireRosterPin = this.cfgRequireRoster ? this.cfgRequireRoster.checked : true;
+        this.saveRosterToStorage();
         this.sendRosterUpdate();
         this.rosterModal.classList.remove('active');
-        alert('Class roster & PINs saved and active.');
+        alert(`Class roster & Access PINs saved (${this.roster.size} student(s) active).`);
       });
     }
 
@@ -268,10 +292,42 @@ class TeacherController {
     });
   }
 
+  saveRosterToStorage() {
+    try {
+      const data = {
+        requireRosterPin: this.requireRosterPin,
+        roster: Array.from(this.roster.values())
+      };
+      localStorage.setItem('formguard_saved_roster', JSON.stringify(data));
+    } catch (e) {
+      console.warn('Failed to save roster to storage:', e);
+    }
+  }
+
+  loadRosterFromStorage() {
+    try {
+      const raw = localStorage.getItem('formguard_saved_roster');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.roster)) {
+          this.roster.clear();
+          data.roster.forEach(r => this.roster.set(r.studentId, r));
+        }
+        if (typeof data.requireRosterPin === 'boolean') {
+          this.requireRosterPin = data.requireRosterPin;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load roster from storage:', e);
+    }
+  }
+
   sendRosterUpdate() {
+    this.saveRosterToStorage();
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({
       action: 'update-roster',
+      code: this.exam.code,
       requireRosterPin: this.requireRosterPin,
       roster: Array.from(this.roster.values())
     }));
