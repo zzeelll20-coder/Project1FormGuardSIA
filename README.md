@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # FormGuard – Secure Exam Lockdown & Live Proctoring Desktop App
 
 **FormGuard** is a unified desktop application for proctoring Google Forms exams. It eliminates the need for Chrome extensions, Firebase projects, Google Cloud credentials, or API keys.
@@ -35,14 +34,25 @@
 
 ## Getting Started
 
-### 1. Install & Launch
-Make sure [Node.js](https://nodejs.org/) (v18+) is installed. In PowerShell or Command Prompt, run:
+### 1. Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- Git
+
+### 2. Installation & Launch
+In your terminal (PowerShell, Command Prompt, or Bash):
 
 ```bash
-# In the formguard directory:
-npm.cmd start
+# 1. Clone repository (if downloading from GitHub)
+git clone <your-repository-url>
+cd formguard
+
+# 2. Install dependencies (creates the local node_modules folder)
+npm install
+
+# 3. Launch application
+npm start
+# (On Windows, you can also run: npm.cmd start)
 ```
-*(On macOS / Linux: `npm start`)*
 
 ---
 
